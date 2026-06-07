@@ -13,11 +13,14 @@ RUN apt-get update && apt-get install -y \
     && pecl install redis && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/*
 
-# PHP tuning
+# PHP tuning + HOME for Chromium/Snappdf
 RUN echo "upload_max_filesize = 100M" >> /usr/local/etc/php/conf.d/upload.ini \
     && echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/upload.ini \
     && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/upload.ini \
     && echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/upload.ini
+
+# Set HOME for php-fpm workers (needed by Chromium for crashpad database)
+RUN echo "env[HOME] = /tmp" > /usr/local/etc/php-fpm.d/z-home.conf
 
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
