@@ -4,7 +4,7 @@ FROM php:8.3-fpm
 RUN apt-get update && apt-get install -y \
     nginx supervisor libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
     libzip-dev libicu-dev libonig-dev libxml2-dev libgmp-dev \
-    nodejs npm git default-mysql-client \
+    nodejs npm git default-mysql-client curl unzip \
     autoconf g++ make pkg-config \
     chromium \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \

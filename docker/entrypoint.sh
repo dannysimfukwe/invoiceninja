@@ -46,7 +46,7 @@ if [ -f .env ] && ! grep -q "^CHROMIUM_PATH=" .env; then
 fi
 
 # Auto-deploy React UI if head.blade.php is empty (not bundled in self-hosted tarball)
-if [ -f resources/views/react/head.blade.php ] && ! -s resources/views/react/head.blade.php; then
+if [ -f resources/views/react/head.blade.php ] && [ ! -s resources/views/react/head.blade.php ]; then
     echo "[entrypoint] React head.blade.php is empty, downloading React UI..."
 
     # Find latest React UI release from GitHub
