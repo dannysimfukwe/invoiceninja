@@ -42,7 +42,8 @@ chmod 664 .env 2>/dev/null || true
 # Add SNAPPDF_CHROMIUM_PATH to .env if missing (needed for Snappdf PDF generation)
 if [ -f .env ] && ! grep -q "^SNAPPDF_CHROMIUM_PATH=" .env; then
     echo "SNAPPDF_CHROMIUM_PATH=/usr/bin/chromium" >> .env
-    echo "[entrypoint] Added SNAPPDF_CHROMIUM_PATH to .env"
+    echo "SNAPPDF_CHROMIUM_ARGUMENTS=\"--no-sandbox --disable-setuid-sandbox\"" >> .env
+    echo "[entrypoint] Added SNAPPDF_CHROMIUM_PATH and SNAPPDF_CHROMIUM_ARGUMENTS to .env"
 fi
 
 # Auto-deploy React UI if head.blade.php is empty (not bundled in self-hosted tarball)
