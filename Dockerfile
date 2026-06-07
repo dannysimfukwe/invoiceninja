@@ -51,6 +51,9 @@ RUN mkdir -p storage/framework/{cache,sessions,testing,views} \
     && chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap
 
+# HOME for Chromium/Snappdf (needs writable crashpad directory)
+ENV HOME=/tmp
+
 EXPOSE 80
 
 ENTRYPOINT ["/entrypoint.sh"]

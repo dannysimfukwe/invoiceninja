@@ -110,7 +110,11 @@ php artisan view:clear 2>/dev/null || true
 php artisan config:cache 2>/dev/null || true
 php artisan route:cache 2>/dev/null || true
 
-# Create storage symlink if missing
+# Create storage symlink (remove real dir first if it exists)
+rm -rf public/storage 2>/dev/null || true
 php artisan storage:link 2>/dev/null || true
+
+# Export HOME for Chromium/Snappdf (php-fpm workers need it for crashpad)
+export HOME=/tmp
 
 exec "$@"
