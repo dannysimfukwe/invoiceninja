@@ -81,7 +81,10 @@ if [ -f resources/views/react/head.blade.php ] && ! -s resources/views/react/hea
                 # Fix ownership
                 chown -R www-data:www-data public/react public/rsms 2>/dev/null || true
 
-                echo "[entrypoint] React UI deployed successfully"
+                # Enable React mode
+                php artisan tinker --execute="DB::table('accounts')->update(['set_react_as_default_ap' => 1]);" 2>/dev/null || true
+
+                echo "[entrypoint] React UI deployed and enabled successfully"
             else
                 echo "[entrypoint] React dist/ not found in zip, falling back to Flutter mode"
                 php artisan tinker --execute="DB::table('accounts')->where('set_react_as_default_ap', 1)->update(['set_react_as_default_ap' => 0]);" 2>/dev/null || true
