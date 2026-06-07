@@ -45,10 +45,58 @@ if [ -f .env ] && ! grep -q "^CHROMIUM_PATH=" .env; then
     echo "[entrypoint] Added CHROMIUM_PATH to .env"
 fi
 
-# Auto-disable React mode if head.blade.php is empty (React assets not bundled)
+# Auto-deploy React UI if head.blade.php is empty (not bundled in self-hosted tarball)
 if [ -f resources/views/react/head.blade.php ] && ! -s resources/views/react/head.blade.php; then
-    echo "[entrypoint] React head.blade.php is empty, forcing Flutter mode..."
-    php artisan tinker --execute="DB::table('accounts')->where('set_react_as_default_ap', 1)->update(['set_react_as_default_ap' => 0]);" 2>/dev/null || true
+    echo "[entrypoint] React head.blade.php is empty, downloading React UI..."
+
+    # Find latest React UI release from GitHub
+    REACT_VERSION=$(curl -sL "https://api.github.com/repos/invoiceninja/ui/releases/latest" 2>/dev/null | grep '"tag_name"' | head -1 | sed 's/.*: "//;s/".*//')
+
+    if [ -n "$REACT_VERSION" ]; then
+        echo "[entrypoint] Downloading React UI release $REACT_VERSION..."
+        curl -sL "https://github.com/invoiceninja/ui/releases/download/$REACT_VERSION/invoiceninja-react.zip" -o /tmp/react.zip 2>/dev/null
+
+        if [ -f /tmp/react.zip ] && [ -s /tmp/react.zip ]; then
+            echo "[entrypoint] Extracting React UI..."
+            rm -rf /tmp/react_extract
+            mkdir -p /tmp/react_extract
+            unzip -o /tmp/react.zip -d /tmp/react_extract 2>/dev/null
+
+            if [ -d /tmp/react_extract/dist ]; then
+                # Copy React assets to public/
+                cp -r /tmp/react_extract/dist/react public/ 2>/dev/null || true
+                cp -r /tmp/react_extract/dist/rsms public/ 2>/dev/null || true
+                cp /tmp/react_extract/dist/logo180.png public/ 2>/dev/null || true
+                cp /tmp/react_extract/dist/favicon.ico public/ 2>/dev/null || true
+                cp /tmp/react_extract/dist/robots.txt public/ 2>/dev/null || true
+                cp /tmp/react_extract/dist/manifest.json public/ 2>/dev/null || true
+                cp -r /tmp/react_extract/dist/docuninja public/ 2>/dev/null || true
+                cp -r /tmp/react_extract/dist/gateway-card-images public/ 2>/dev/null || true
+                cp -r /tmp/react_extract/dist/dap-logos public/ 2>/dev/null || true
+                cp -r /tmp/react_extract/dist/tinymce_6.4.2 public/ 2>/dev/null || true
+
+                # Generate head.blade.php from dist/index.html <head> content
+                sed -n '/<head>/,/<\/head>/p' /tmp/react_extract/dist/index.html | sed '1d;$d' > resources/views/react/head.blade.php
+
+                # Fix ownership
+                chown -R www-data:www-data public/react public/rsms 2>/dev/null || true
+
+                echo "[entrypoint] React UI deployed successfully"
+            else
+                echo "[entrypoint] React dist/ not found in zip, falling back to Flutter mode"
+                php artisan tinker --execute="DB::table('accounts')->where('set_react_as_default_ap', 1)->update(['set_react_as_default_ap' => 0]);" 2>/dev/null || true
+            fi
+
+            # Cleanup
+            rm -rf /tmp/react.zip /tmp/react_extract
+        else
+            echo "[entrypoint] Failed to download React UI, falling back to Flutter mode"
+            php artisan tinker --execute="DB::table('accounts')->where('set_react_as_default_ap', 1)->update(['set_react_as_default_ap' => 0]);" 2>/dev/null || true
+        fi
+    else
+        echo "[entrypoint] Could not determine React UI version, falling back to Flutter mode"
+        php artisan tinker --execute="DB::table('accounts')->where('set_react_as_default_ap', 1)->update(['set_react_as_default_ap' => 0]);" 2>/dev/null || true
+    fi
 fi
 
 # Run artisan commands (clear stale cache first - setup may have changed .env)
