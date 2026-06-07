@@ -39,10 +39,10 @@ chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 chown www-data:www-data .env 2>/dev/null || true
 chmod 664 .env 2>/dev/null || true
 
-# Add CHROMIUM_PATH to .env if missing (needed for Snappdf PDF generation)
-if [ -f .env ] && ! grep -q "^CHROMIUM_PATH=" .env; then
-    echo "CHROMIUM_PATH=/usr/bin/chromium" >> .env
-    echo "[entrypoint] Added CHROMIUM_PATH to .env"
+# Add SNAPPDF_CHROMIUM_PATH to .env if missing (needed for Snappdf PDF generation)
+if [ -f .env ] && ! grep -q "^SNAPPDF_CHROMIUM_PATH=" .env; then
+    echo "SNAPPDF_CHROMIUM_PATH=/usr/bin/chromium" >> .env
+    echo "[entrypoint] Added SNAPPDF_CHROMIUM_PATH to .env"
 fi
 
 # Auto-deploy React UI if head.blade.php is empty (not bundled in self-hosted tarball)
